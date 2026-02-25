@@ -42,3 +42,35 @@ button {
   justify-content: center;
   align-items: center;
 }
+
+body {
+  background: #008080;
+  overflow: hidden;
+  font-family: Tahoma, sans-serif;
+  transition: transform 0.1s;
+}
+
+.popup {
+  position: absolute;
+  background: #c0c0c0;
+  border: 2px solid black;
+  box-shadow: 4px 4px 0 black;
+}
+
+.titlebar {
+  background: navy;
+  color: white;
+  padding: 5px;
+  font-weight: bold;
+}
+
+.close {
+  float: right;
+  cursor: pointer;
+}
+
+button {
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
