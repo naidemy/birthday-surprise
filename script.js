@@ -8,17 +8,30 @@ const messages = [
   "Обнаружена спам-атака!",
   "Ошибка системы 0x00021!",
   "Доступ к данным открыт!",
-  "Срочно закройте это окно!"
+  "Передача данных..."
 ];
 
 let openWindows = 0;
+let stubbornWindowClosed = false;
 
-function createPopup(text, isFinal = false) {
+const errorSound = new Audio("error.mp3");
+
+function shakeScreen() {
+  document.body.style.transform = "translateX(5px)";
+  setTimeout(() => {
+    document.body.style.transform = "translateX(-5px)";
+  }, 50);
+  setTimeout(() => {
+    document.body.style.transform = "translateX(0)";
+  }, 100);
+}
+
+function createPopup(text, isFinal = false, stubborn = false) {
   const popup = document.createElement("div");
   popup.className = "popup";
 
-  const width = 200 + Math.random() * 200;
-  const height = 120 + Math.random() * 120;
+  const width = 200 + Math.random() * 250;
+  const height = 120 + Math.random() * 150;
 
   popup.style.width = width + "px";
   popup.style.height = height + "px";
@@ -28,29 +41,55 @@ function createPopup(text, isFinal = false) {
 
   popup.style.zIndex = 1000 + openWindows;
 
+  let content = text;
+
+  if (!isFinal) {
+    const fakeTimer = Math.floor(Math.random() * 10) + 5;
+    content += `<br><br>Удаление через ${fakeTimer} сек...`;
+  }
+
+  if (isFinal) {
+    content = `
+      🎉 Система успешно очищена! 🎉
+      <br><br>
+      <button id="prizeBtn">🎁 Жми и получи приз!</button>
+    `;
+  }
+
   popup.innerHTML = `
     <div class="titlebar">
       SYSTEM ERROR
       <span class="close">✖</span>
     </div>
-    <div class="content">
-      ${text}
-      ${
-        isFinal
-          ? `<br><br><button id="prizeBtn">🎁 Жми и получи приз!</button>`
-          : ""
-      }
-    </div>
+    <div class="content">${content}</div>
   `;
 
   document.body.appendChild(popup);
 
-  if (!isFinal) {
-    openWindows++;
-  }
+  if (!isFinal) openWindows++;
+
+  // лёгкое хаотичное движение
+  const moveInterval = setInterval(() => {
+    popup.style.left =
+      parseFloat(popup.style.left) + (Math.random() * 6 - 3) + "px";
+    popup.style.top =
+      parseFloat(popup.style.top) + (Math.random() * 6 - 3) + "px";
+  }, 200);
 
   popup.querySelector(".close").onclick = () => {
+    errorSound.play();
+    shakeScreen();
+
+    if (stubborn && !stubbornWindowClosed) {
+      popup.querySelector(".content").innerHTML =
+        "ЭТО ОКНО НЕЛЬЗЯ ЗАКРЫТЬ 😈";
+      stubbornWindowClosed = true;
+      return;
+    }
+
+    clearInterval(moveInterval);
     popup.remove();
+
     if (!isFinal) {
       openWindows--;
       checkIfDone();
@@ -64,7 +103,9 @@ function createPopup(text, isFinal = false) {
 
 function checkIfDone() {
   if (openWindows === 0) {
-    createPopup("Система очищена!", true);
+    setTimeout(() => {
+      createPopup("", true);
+    }, 800);
   }
 }
 
@@ -72,9 +113,14 @@ function openVideo() {
   document.getElementById("videoContainer").classList.remove("hidden");
 }
 
-// создаём 12 хаотичных окон
-for (let i = 0; i < 12; i++) {
+// создаём 14 хаотичных окон
+for (let i = 0; i < 14; i++) {
   const randomText =
     messages[Math.floor(Math.random() * messages.length)];
-  createPopup(randomText);
+
+  if (i === 5) {
+    createPopup(randomText, false, true); // упрямое окно
+  } else {
+    createPopup(randomText);
+  }
 }
